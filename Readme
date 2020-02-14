@@ -1,5 +1,6 @@
 If you want create new proto file you need use down commands:
 GRPC generation WalletServiceGrpc  add in pom.xml maven
+
 <build>
         <extensions>
             <extension>
@@ -41,7 +42,12 @@ GRPC generation WalletServiceGrpc  add in pom.xml maven
             </plugin>
         </plugins>
     </build>
-Step 1: protoc -I=. --java_out=src/main/java/ src/main/proto/HelloService.proto
+
+Step 1:
+protoc -I=. --java_out=src/main/java/ src/main/proto/helloservice.proto
+
+protoc --proto_path=src/main/proto  --java_out=src/main/java/ src/main/proto/helloservice.proto
+
 Step 2: mvn package
 
 Step 3: copy cenereted file from target/generete-sources/protobuf/grpc-java in your package 

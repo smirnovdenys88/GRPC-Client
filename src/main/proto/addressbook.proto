@@ -1,0 +1,38 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_outer_classname = "AddressBookClass";
+option java_package = "com.grpc.soapbox.grpc.client.google.proto";
+
+service AddressBook {
+    rpc getAddressByBook(Book) returns (Address);
+    rpc getBooksByUser(User) returns (Books);
+}
+
+message Book {
+    string userName = 1;
+    string nameBook = 2;
+    Address address = 3;
+    string author = 4;
+
+    enum BookType {
+        MOBILE = 0;
+        HOME = 1;
+        WORK = 2;
+    }
+
+    BookType bookType = 5;
+}
+
+message Address{
+   string country = 1;
+   string city = 2;
+   string street = 3;
+}
+
+message User{
+    string userName = 1;
+}
+
+message Books{
+  repeated Book arrayBooks = 1;
+}

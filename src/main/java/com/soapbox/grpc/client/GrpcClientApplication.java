@@ -1,36 +1,65 @@
 package com.soapbox.grpc.client;
 
+import com.grpc.soapbox.grpc.client.google.proto.Address;
+import com.grpc.soapbox.grpc.client.google.proto.Book;
+import com.grpc.soapbox.grpc.client.google.proto.Books;
+import com.grpc.soapbox.grpc.client.google.proto.User;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-@SpringBootApplication
+import java.util.concurrent.TimeUnit;
+
 public class GrpcClientApplication {
+    private static final Logger LOG = LogManager.getLogger(GrpcClientApplication.class);
 
-    private static ManagedChannel grpcConnection;
-    private static HelloServiceGrpc.HelloServiceBlockingStub stub;
+    private static ManagedChannel managedChannel;
+    private static AddressBookGrpc.AddressBookBlockingStub stub;
 
     public static void main(String[] args) {
-        for (int i = 0; i <= 10; i++) {
-            try {
-                grpcConnection = ManagedChannelBuilder.forTarget("localhost:6666")
+        LOG.info("Start client grpc");
+        managedChannel = ManagedChannelBuilder
+                        .forTarget("localhost:9633")
                         .usePlaintext()
                         .build();
 
-                HelloRequest request = HelloRequest.newBuilder()
-                        .setFirstName("Test" + i)
-                        .setLastName("Test" + i)
+        stub = AddressBookGrpc.newBlockingStub(managedChannel);
+        long deadlineMs = 2000;
+
+        for (int i = 0; i <= 2; i++) {
+            try {
+                Book book = Book.newBuilder()
+                        .setNameBook("Some kind book " + i)
+                        .setBookType(Book.BookType.HOME)
+                        .setAuthor("Some kind author " + i)
                         .build();
 
-                stub = HelloServiceGrpc.newBlockingStub(grpcConnection);
+                Address address = stub
+                        .withDeadlineAfter(deadlineMs, TimeUnit.MILLISECONDS)
+                        .getAddressByBook(book);
 
-                HelloResponse response = stub.hello(request);
-                System.out.println(response.getGreeting());
+                System.out.printf("\nBook: %s \nAddress: %s\n", book, address);
 
                 Thread.sleep(1000l);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+            } catch (Exception e){
+                System.out.println(e);
             }
         }
+
+
+        LOG.info("Get books by user");
+
+        User user = User.newBuilder()
+                .setUserName("Jon Snow")
+                .build();
+
+        Books books = stub.getBooksByUser(user);
+
+        LOG.info("Books: " + books.toString());
+
+        managedChannel.shutdown();
+        LOG.info("Stop client grpc");
     }
 }
